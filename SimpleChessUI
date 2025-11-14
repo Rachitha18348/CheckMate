@@ -1,0 +1,79 @@
+import javax.swing.*;
+import java.awt.*;
+
+public class SimpleChessUI extends JFrame {
+    private static final int BOARD_SIZE = 8;
+    private static final int SQUARE_SIZE = 80;
+    private JPanel boardPanel;
+    private JButton[][] squares;
+    private SimpleChessEngine gameEngine;
+    private int selectedRow = -1;
+    private int selectedCol = -1;
+    
+    public SimpleChessUI() {
+        gameEngine = new SimpleChessEngine();
+        initializeUI();
+    }
+    
+    private void initializeUI() {
+        setTitle("Chess Game");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+        
+        boardPanel = new JPanel(new GridLayout(BOARD_SIZE, BOARD_SIZE));
+        squares = new JButton[BOARD_SIZE][BOARD_SIZE];
+        
+        for (int row = 0; row < BOARD_SIZE; row++) {
+            for (int col = 0; col < BOARD_SIZE; col++) {
+                squares[row][col] = new JButton();
+                squares[row][col].setPreferredSize(new Dimension(SQUARE_SIZE, SQUARE_SIZE));
+                squares[row][col].setBackground((row + col) % 2 == 0 ? Color.WHITE : Color.GRAY);
+                final int r = row;
+                final int c = col;
+                squares[row][col].addActionListener(e -> handleClick(r, c));
+                boardPanel.add(squares[row][col]);
+            }
+        }
+        
+        add(boardPanel, BorderLayout.CENTER);
+        updateBoard();
+        pack();
+        setLocationRelativeTo(null);
+    }
+    
+    private void handleClick(int row, int col) {
+        if (selectedRow == -1) {
+            char piece = gameEngine.getBoard()[row][col];
+            if (piece != ' ' && (Character.isUpperCase(piece) == gameEngine.isWhiteTurn())) {
+                selectedRow = row;
+                selectedCol = col;
+                squares[row][col].setBackground(Color.YELLOW);
+            }
+        } else {
+            gameEngine.makeMove(selectedRow, selectedCol, row, col);
+            squares[selectedRow][selectedCol].setBackground(
+                (selectedRow + selectedCol) % 2 == 0 ? Color.WHITE : Color.GRAY
+            );
+            selectedRow = -1;
+            selectedCol = -1;
+            updateBoard();
+        }
+    }
+    
+    private void updateBoard() {
+        char[][] board = gameEngine.getBoard();
+        for (int row = 0; row < BOARD_SIZE; row++) {
+            for (int col = 0; col < BOARD_SIZE; col++) {
+                squares[row][col].setText(String.valueOf(board[row][col]));
+                squares[row][col].setFont(new Font("Arial", Font.BOLD, 40));
+            }
+        }
+    }
+    
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            SimpleChessUI ui = new SimpleChessUI();
+            ui.setVisible(true);
+        });
+    }
+}
